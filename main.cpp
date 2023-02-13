@@ -89,6 +89,9 @@ int main() {
     const size_t rect_w = w / map_w;
     const size_t rect_h = h / map_h;
     
+    double player_x = 8;
+    double player_y = 6;
+    
     for(size_t j = 0; j < map_h; j++){
     	for(size_t i = 0; i < map_w; i++){
     		if(map[i + j*map_w] != ' ')
@@ -100,6 +103,9 @@ int main() {
     		draw_rectangle(framebuffer, w, h, rect_x, rect_y, rect_w, rect_h, pack_color(255,255,255,255));
     	}
     }
+    
+    // player is rectangle with 5x5 size
+    draw_rectangle(framebuffer, w, h, player_x*rect_w, player_y*rect_h, 5, 5, pack_color(255,255,255,255));
     
     draw_ppm("./out.ppm", framebuffer, w, h);
 }
