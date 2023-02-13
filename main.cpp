@@ -31,13 +31,50 @@ void draw_ppm(const std::string filename, const std::vector<uint32_t>& img, cons
 	}
 	
 	ofs.close();
-} 
+}
+
+void draw_rectangle(std::vector<uint32_t>& img, const size_t w, const size_t h, const size_t x, const size_t y, const size_t rect_w, const size_t rect_h, const uint32_t color){
+	assert(img.size() == w*h);
+	
+	for(size_t i = 0; i < rect_w; i++){
+		for(size_t j = 0; j < rect_h; j++){
+			size_t cx = x + i;
+			size_t cy = y + j;
+			assert(cx < w && cy < h);
+			
+			img[cx + cy*w] = color;
+		}
+	}
+}
 
 int main() {
     int w = 512;
     int h = 512;
     
-    std::vector<uint32_t> framebuffer(w*h, 255);
+    int map_w = 16;
+    int map_h = 16;
+    
+    // map 0-wall, " " - nothing
+    const char map[] =  "0000000000000000"
+			"0000000000000000"
+			"0000    00000000"
+			"0000    00000000"
+			"0000          00"
+			"000    000000000"
+			"000    000000000"
+			"000    000000000"
+			"000    000000000"
+			"000    000000000"
+			"000         0000"
+			"0000000     0000"
+			"000000000   0000"
+			"0000   00   0000"
+			"0000        0000"
+			"0000000000000000";
+			
+    assert(map_w * map_h+1 == sizeof(map));
+    
+    std::vector<uint32_t> framebuffer(w*h, 255);   
     
     for(size_t j = 0; j < h; j++){
     	for(size_t i = 0; i < w; i++){
@@ -46,6 +83,21 @@ int main() {
     		uint8_t b = 255*i/float(h);
     		
     		framebuffer[i + j*h] = pack_color(r,g,b,255);
+    	}
+    }
+    
+    const size_t rect_w = w / map_w;
+    const size_t rect_h = h / map_h;
+    
+    for(size_t j = 0; j < map_h; j++){
+    	for(size_t i = 0; i < map_w; i++){
+    		if(map[i + j*map_w] != ' ')
+    			continue;
+    			
+    		size_t rect_x = i * rect_w;
+    		size_t rect_y = j * rect_h;
+    		
+    		draw_rectangle(framebuffer, w, h, rect_x, rect_y, rect_w, rect_h, pack_color(255,255,255,255));
     	}
     }
     
