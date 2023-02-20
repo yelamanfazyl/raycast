@@ -120,7 +120,26 @@ int main(){
 
 	sf::RenderWindow window(sf::VideoMode(w, h), "RayCaster", sf::Style::Close|sf::Style::Titlebar);
 
+
+	double player_a = 1.4;
+
 	while(window.isOpen()){
+
+        sf::Event event;
+
+        while(window.pollEvent(event)){
+            if(event.type == sf::Event::Closed)
+                window.close();
+
+			if(event.type == sf::Event::KeyPressed){
+				if(event.key.code == sf::Keyboard::Left){
+					player_a -= 2*M_PI/360;
+				} else if(event.key.code == sf::Keyboard::Right){
+					player_a += 2*M_PI/360;
+				}
+			}
+        }
+
 		int map_w = 16;
 		int map_h = 16;
 
@@ -158,7 +177,6 @@ int main(){
 
 		double player_x = 6.5;
 		double player_y = 8.5;
-		double player_a = 1.4;
 		const double fov = M_PI / 3;
 
 		std::vector<uint32_t> framebuffer(w * h, pack_color(255, 255, 255, 255));
@@ -179,8 +197,6 @@ int main(){
 
 		// player is rectangle with 5x5 size
 		draw_rectangle(framebuffer, w, h, player_x * rect_w, player_y * rect_h, 5, 5, pack_color(255, 255, 255, 255));
-
-		player_a += 2 * M_PI / 360;
 
 		for (size_t i = 0; i < w / 2; i++) {
 			double ang = player_a - fov / 2 + fov * i / float(w);
@@ -242,14 +258,15 @@ int main(){
             window.draw(rendermap[i], w, sf::Points);
         }
 
-        sf::Event event;
-
-        while(window.pollEvent(event)){
-            if(event.type == sf::Event::Closed)
-                window.close();
+        window.display();
+		
+		// do not forget OR GG BB COMPUTER
+		
+		for(int i = 0; i < h; i++){
+			delete[] rendermap[i];
         }
 
-        window.display();
+		delete[] rendermap;
 	}
 
 	return 0;
