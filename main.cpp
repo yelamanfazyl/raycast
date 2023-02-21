@@ -120,8 +120,46 @@ int main(){
 
 	sf::RenderWindow window(sf::VideoMode(w, h), "RayCaster", sf::Style::Close|sf::Style::Titlebar);
 
-
+	double player_x = 6.5;
+	double player_y = 8.5;
+	const double fov = M_PI / 3;
 	double player_a = 1.4;
+	double step_sz = 0.1;
+
+	std::vector<uint32_t> walltext;
+	size_t walltext_cnt;
+	size_t walltext_size;
+
+	if(!load_texture(walltext, "./walltext.png", walltext_size, walltext_cnt)){
+		std::cerr << "Something wrong happened. Check errors before this" << std::endl;
+		return -1;
+	}
+
+	int map_w = 16;
+	int map_h = 16;
+
+	// map 0-wall, " " - nothing
+	const char map[] =  "0022222222220000"
+						"0              0"
+						"0      00000   0"
+						"1     0        0"
+						"1     0  0000000"
+						"1     0        0"
+						"1   04440      0"
+						"0   0   0000   0"
+						"0   5   3      0"
+						"0   0   3  00000"
+						"0       2      0"
+						"0       2      0"
+						"0       0      0"
+						"0 1105500      0"
+						"0              0"
+						"0000000000000000";
+
+	assert(map_w * map_h + 1 == sizeof(map));
+
+	const size_t rect_w = w / (map_w * 2);
+	const size_t rect_h = h / map_h;
 
 	while(window.isOpen()){
 
@@ -136,48 +174,37 @@ int main(){
 					player_a -= 2*M_PI/360;
 				} else if(event.key.code == sf::Keyboard::Right){
 					player_a += 2*M_PI/360;
+				} else if(event.key.code == sf::Keyboard::Up){
+					double walk_direction = player_a - fov / 4;
+					float dx = cos(walk_direction);
+					float dy = sin(walk_direction);
+					
+					// std::cout << "player_x : " << player_x << " dx : " << dx << std::endl;
+					// std::cout << "player_y : " << player_y << " dy : " << dy << std::endl;
+					// std::cout << "rect_w : " << rect_w << " rect_h : " << rect_h << std::endl;
+					// std::cout << "map_w : " << map_w << " map_h : " << map_h << std::endl;
+					// std::cout << (int)(player_x + dx + ((player_y + dy) * map_w)) << std::endl;
+					// std::cout << map[(int)(player_x + dx + ((player_y + dy) * map_w))] << std::endl;
+
+					player_x += dx * step_sz;
+					player_y += dy * step_sz;
+				} else if(event.key.code == sf::Keyboard::Down){
+					double walk_direction = player_a - fov / 4;
+					float dx = cos(walk_direction);
+					float dy = sin(walk_direction);
+					
+					// std::cout << "player_x : " << player_x << " dx : " << dx << std::endl;
+					// std::cout << "player_y : " << player_y << " dy : " << dy << std::endl;
+					// std::cout << "rect_w : " << rect_w << " rect_h : " << rect_h << std::endl;
+					// std::cout << "map_w : " << map_w << " map_h : " << map_h << std::endl;
+					// std::cout << (int)(player_x - dx + ((player_y - dy) * map_w)) << std::endl;
+					// std::cout << map[(int)(player_x - dx + ((player_y - dy) * map_w))] <
+					
+					player_x -= dx * step_sz;
+					player_y -= dy * step_sz;
 				}
 			}
         }
-
-		int map_w = 16;
-		int map_h = 16;
-
-		// map 0-wall, " " - nothing
-		const char map[] = "0022222222220000"
-							"0              0"
-							"0      00000   0"
-							"1     0        0"
-							"1     0  0000000"
-							"1     0        0"
-							"1   04440      0"
-							"0   0   0000   0"
-							"0   5   3      0"
-							"0   0   3  00000"
-							"0       2      0"
-							"0       2      0"
-							"0       0      0"
-							"0 1105500      0"
-							"0              0"
-							"0000000000000000";
-
-		assert(map_w * map_h + 1 == sizeof(map));
-
-		const size_t rect_w = w / (map_w * 2);
-		const size_t rect_h = h / map_h;
-
-		std::vector<uint32_t> walltext;
-		size_t walltext_cnt;
-		size_t walltext_size;
-
-		if(!load_texture(walltext, "./walltext.png", walltext_size, walltext_cnt)){
-			std::cerr << "Something wrong happened. Check errors before this" << std::endl;
-			return -1;
-		}
-
-		double player_x = 6.5;
-		double player_y = 8.5;
-		const double fov = M_PI / 3;
 
 		std::vector<uint32_t> framebuffer(w * h, pack_color(255, 255, 255, 255));
 
@@ -216,10 +243,14 @@ int main(){
 
 					// draw_rectangle(framebuffer, w, h, w / 2 + i, h / 2 - column_height / 2, 1, column_height, walltext[color_idx*walltext_size]);
 
-					float hitx = cx - (long)cx;
-					float hity = cy - (long)cy;
+					float hitx = cx - floor(cx+.5);
+					float hity = cy - floor(cy+.5);
 
 					int x_texcoord = (std::abs(hity) > std::abs(hitx)) ? hity * walltext_size : hitx * walltext_size;
+
+					if(x_texcoord < 0){
+						x_texcoord += walltext_size;
+					}
 
 					assert(x_texcoord >= 0 && x_texcoord < (int)walltext_size);
 
